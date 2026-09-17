@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SATQUERY AI — Multimodal Remote Sensing Agentic Assistant</title>
+  <meta name="description" content="Agentic AI-powered remote-sensing analysis platform for multimodal satellite imagery through natural language text queries.">
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- CSS Styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="logo-container">
+      <div class="logo-icon">🛰️</div>
+      <div class="logo-text">
+        <h1 data-i18n="app_title">SATQUERY AI</h1>
+        <span data-i18n="tagline">Multimodal Remote Sensing Agentic Assistant</span>
+      </div>
+    </div>
+
+    <nav class="header-nav">
+      <button class="nav-link active" data-view-target="view-dashboard" data-i18n="nav_home">Dashboard</button>
+      <button class="nav-link" data-view-target="view-history" data-i18n="nav_history">History</button>
+      <button class="nav-link" data-view-target="view-about" data-i18n="nav_about">About & Models</button>
+    </nav>
+
+    <div class="header-right">
+      <div id="system-status-pill" class="status-badge">
+        <div class="status-dot"></div>
+        <span id="system-status-text" data-i18n="system_online">AI SYSTEM ONLINE</span>
+      </div>
+
+      <div class="lang-select-wrapper">
+        <select class="lang-selector" aria-label="Language selection">
+          <option value="en">English (Default)</option>
+          <option value="ta">தமிழ் (Tamil)</option>
+          <option value="hi">हिन्दी (Hindi)</option>
+          <option value="te">తెలుగు (Telugu)</option>
+          <option value="kn">ಕನ್ನಡ (Kannada)</option>
+          <option value="ml">മലയാളം (Malayalam)</option>
+          <option value="bn">বাংলা (Bengali)</option>
+          <option value="mr">मराठी (Marathi)</option>
+          <option value="gu">ગુજરાતી (Gujarati)</option>
+        </select>
+      </div>
+
+      <div id="user-badge-container" class="user-profile-badge">
+        <span>👨‍🔬</span>
+        <span id="user-email-badge">scientist@isro.gov.in</span>
+        <button id="btn-logout" class="btn-secondary" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;" data-i18n="nav_logout">Sign Out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       1. Login & Registration View (First screen when not signed in)
+       ========================================================================== -->
+  <section id="login-section" class="auth-container">
+    <div class="glass-panel auth-card">
+      <div class="auth-header">
+        <div class="auth-logo">🛰️</div>
+        <h2 id="auth-title" data-i18n="login_title">SatQuery AI Portal</h2>
+        <p data-i18n="login_subtitle">Sign in to access agentic satellite image analysis</p>
+        <span class="platform-badge" data-i18n="sih_badge">Enterprise Remote Sensing AI</span>
+      </div>
+
+      <div id="auth-alert" class="alert-box alert-error hidden"></div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="auth-email" data-i18n="email_label">Email Address</label>
+          <input type="email" id="auth-email" class="form-input" data-i18n-placeholder="email_placeholder" placeholder="scientist@isro.gov.in" required>
+        </div>
+
+        <div class="form-group">
+          <label for="auth-password" data-i18n="password_label">Password</label>
+          <input type="password" id="auth-password" class="form-input" data-i18n-placeholder="password_placeholder" placeholder="Enter secure password" required>
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="select_language">Preferred Language</label>
+          <select class="lang-selector form-input" style="cursor: pointer;">
+            <option value="en">English</option>
+            <option value="ta">தமிழ் (Tamil)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+            <option value="te">తెలుగు (Telugu)</option>
+            <option value="kn">ಕನ್ನಡ (Kannada)</option>
+            <option value="ml">മലയാളം (Malayalam)</option>
+            <option value="bn">বাংলা (Bengali)</option>
+            <option value="mr">मराठी (Marathi)</option>
+            <option value="gu">ગુજરાતી (Gujarati)</option>
+          </select>
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="btn-primary" data-i18n="login_btn">
+          Sign In
+        </button>
+      </form>
+
+      <div class="auth-toggle">
+        <a id="auth-toggle-link" data-i18n="switch_to_register">Need an account? Register here</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       2. Main Application Views (Shown after login)
+       ========================================================================== -->
+  <main id="main-app" class="dashboard-container hidden">
+
+    <!-- VIEW A: MAIN DASHBOARD -->
+    <div id="view-dashboard" class="app-view">
+      
+      <!-- Section Header -->
+      <div class="section-header">
+        <h2 data-i18n="mode_title">Select Remote Sensing Analysis Mode</h2>
+        <p>Choose an analysis configuration suited for your satellite scenes or coordinates.</p>
+      </div>
+
+      <!-- Three Main Analysis Modes Grid -->
+      <div class="modes-grid">
+        <!-- MODE 1 -->
+        <div class="glass-panel mode-card active" data-mode="single">
+          <div class="mode-icon">🛰️</div>
+          <h3 data-i18n="mode1_title">Mode 1: Single Image</h3>
+          <p data-i18n="mode1_desc">Analyze individual optical satellite scenes for buildings, water, vegetation & land cover.</p>
+          <span class="mode-select-btn">Select Mode 1</span>
+        </div>
+
+        <!-- MODE 2 -->
+        <div class="glass-panel mode-card" data-mode="optical_sar">
+          <div class="mode-icon">📡</div>
+          <h3 data-i18n="mode2_title">Mode 2: Optical + SAR</h3>
+          <p data-i18n="mode2_desc">Multimodal fusion combining optical spectral reflectance with SAR radar backscatter.</p>
+          <span class="mode-select-btn">Select Mode 2</span>
+        </div>
+
+        <!-- MODE 3 -->
+        <div class="glass-panel mode-card" data-mode="multitemporal">
+          <div class="mode-icon">⏳</div>
+          <h3 data-i18n="mode3_title">Mode 3: Multitemporal Change</h3>
+          <p data-i18n="mode3_desc">Compare Before and After satellite scenes to quantify environmental & urban changes.</p>
+          <span class="mode-select-btn">Select Mode 3</span>
+        </div>
+      </div>
+
+      <!-- Location Analysis Alternative Tab -->
+      <div id="latlon-mode-banner" class="latlon-banner">
+        <div>
+          <strong style="color: var(--primary-cyan);">📍 <span data-i18n="mode_latlon_tab">Analyze by Location (Lat / Lon)</span></strong>
+          <span style="font-size: 0.85rem; color: var(--text-secondary); margin-left: 0.5rem;">Pick coordinates, preview real-time area satellite imagery, and generate visual evidence overlays.</span>
+        </div>
+        <span class="btn-secondary" style="padding: 0.35rem 0.8rem; font-size: 0.78rem;">Configure Coordinates</span>
+      </div>
+
+      <!-- Analysis Input Panel -->
+      <div class="glass-panel analysis-input-panel">
+
+        <!-- 1. Single Image Mode Upload -->
+        <div id="upload-section-single" class="uploads-wrapper">
+          <div class="upload-header-label">
+            <span data-i18n="upload_single_label">Upload Satellite Image</span>
+            <span style="font-size: 0.78rem; color: var(--text-secondary);">Supports PNG, JPG, JPEG, WEBP, TIFF</span>
+          </div>
+
+          <div class="sample-bar">
+            <span>💡 Quick Demo: Click to load authentic satellite scene:</span>
+            <button type="button" class="btn-sample" data-load-sample="single" data-i18n="load_sample_btn">⚡ Load Sample Scene</button>
+          </div>
+
+          <div id="single-dropzone" class="dropzone">
+            <input type="file" id="single-image-input" accept=".png,.jpg,.jpeg,.webp,.tif,.tiff">
+            <div class="dropzone-icon">📷</div>
+            <strong data-i18n="dropzone_hint">Drag & drop satellite image or click to browse</strong>
+            <p>High-resolution optical satellite tile (e.g., Sentinel-2, Landsat, Cartosat)</p>
+          </div>
+
+          <div id="single-preview" class="preview-container hidden">
+            <img src="" alt="Satellite Preview">
+            <div class="preview-overlay">
+              <span class="preview-meta">filename.jpg</span>
+              <button type="button" class="btn-remove-preview" onclick="removeUploadedFile('single', 'single-image-input', 'single-dropzone', 'single-preview')">✕ Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Optical + SAR Mode Uploads -->
+        <div id="upload-section-optical-sar" class="uploads-wrapper hidden">
+          <div class="sample-bar">
+            <span>💡 Testing Multimodal Fusion? Load paired Sentinel Optical + SAR scene:</span>
+            <button type="button" class="btn-sample" data-load-sample="optical_sar" data-i18n="load_sample_btn">⚡ Load Optical + SAR Pair</button>
+          </div>
+
+          <div class="upload-columns-2">
+            <!-- Optical Image Upload -->
+            <div class="upload-box-container">
+              <div class="upload-header-label">
+                <span data-i18n="upload_optical_label">Upload Optical Satellite Image</span>
+              </div>
+              <div id="optical-dropzone" class="dropzone">
+                <input type="file" id="optical-image-input" accept=".png,.jpg,.jpeg,.webp,.tif,.tiff">
+                <div class="dropzone-icon">🌈</div>
+                <strong>Optical Multispectral Scene</strong>
+                <p>Visible spectral reflectance</p>
+              </div>
+              <div id="optical-preview" class="preview-container hidden">
+                <img src="" alt="Optical Preview">
+                <div class="preview-overlay">
+                  <span class="preview-meta">optical.jpg</span>
+                  <button type="button" class="btn-remove-preview" onclick="removeUploadedFile('optical', 'optical-image-input', 'optical-dropzone', 'optical-preview')">✕ Remove</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- SAR Image Upload -->
+            <div class="upload-box-container">
+              <div class="upload-header-label">
+                <span data-i18n="upload_sar_label">Upload SAR Satellite Image</span>
+              </div>
+              <div id="sar-dropzone" class="dropzone">
+                <input type="file" id="sar-image-input" accept=".png,.jpg,.jpeg,.webp,.tif,.tiff">
+                <div class="dropzone-icon">📡</div>
+                <strong>SAR Radar Backscatter Scene</strong>
+                <p>Microwave structural backscatter (Sentinel-1 / RISAT)</p>
+              </div>
+              <div id="sar-preview" class="preview-container hidden">
+                <img src="" alt="SAR Preview">
+                <div class="preview-overlay">
+                  <span class="preview-meta">sar.jpg</span>
+                  <button type="button" class="btn-remove-preview" onclick="removeUploadedFile('sar', 'sar-image-input', 'sar-dropzone', 'sar-preview')">✕ Remove</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Multitemporal Mode Uploads -->
+        <div id="upload-section-multitemporal" class="uploads-wrapper hidden">
+          <div class="sample-bar">
+            <span>💡 Testing Multitemporal Change? Load Before & After flood/development scenes:</span>
+            <button type="button" class="btn-sample" data-load-sample="multitemporal" data-i18n="load_sample_btn">⚡ Load Before & After Pair</button>
+          </div>
+
+          <div class="upload-columns-2">
+            <!-- Before Image -->
+            <div class="upload-box-container">
+              <div class="upload-header-label">
+                <span data-i18n="upload_before_label">Upload Before Image (Time T1)</span>
+              </div>
+              <div id="before-dropzone" class="dropzone">
+                <input type="file" id="before-image-input" accept=".png,.jpg,.jpeg,.webp,.tif,.tiff">
+                <div class="dropzone-icon">📅</div>
+                <strong>Baseline Scene (Before)</strong>
+                <p>Pre-event reference satellite image</p>
+              </div>
+              <div id="before-preview" class="preview-container hidden">
+                <img src="" alt="Before Preview">
+                <div class="preview-overlay">
+                  <span class="preview-meta">before.jpg</span>
+                  <button type="button" class="btn-remove-preview" onclick="removeUploadedFile('before', 'before-image-input', 'before-dropzone', 'before-preview')">✕ Remove</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- After Image -->
+            <div class="upload-box-container">
+              <div class="upload-header-label">
+                <span data-i18n="upload_after_label">Upload After Image (Time T2)</span>
+              </div>
+              <div id="after-dropzone" class="dropzone">
+                <input type="file" id="after-image-input" accept=".png,.jpg,.jpeg,.webp,.tif,.tiff">
+                <div class="dropzone-icon">🔄</div>
+                <strong>Target Scene (After)</strong>
+                <p>Post-event target satellite image</p>
+              </div>
+              <div id="after-preview" class="preview-container hidden">
+                <img src="" alt="After Preview">
+                <div class="preview-overlay">
+                  <span class="preview-meta">after.jpg</span>
+                  <button type="button" class="btn-remove-preview" onclick="removeUploadedFile('after', 'after-image-input', 'after-dropzone', 'after-preview')">✕ Remove</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Location Analysis Form (Interactive Map & Satellite Scene Preview) -->
+        <div id="upload-section-location" class="uploads-wrapper hidden">
+          
+          <!-- Preset Locations Bar -->
+          <div class="presets-container">
+            <div class="presets-header">
+              <span>📍 Quick Location Presets:</span>
+              <span style="font-size: 0.78rem; color: var(--text-secondary);">Click any landmark to preview area & satellite scene</span>
+            </div>
+            <div class="presets-list">
+              <button type="button" class="location-chip active" data-lat="10.9601" data-lon="76.9500" data-name="Coimbatore Greenery & Urban">
+                🌱 Coimbatore, TN
+              </button>
+              <button type="button" class="location-chip" data-lat="13.7199" data-lon="80.2304" data-name="ISRO Sriharikota Spaceport">
+                🚀 ISRO Sriharikota
+              </button>
+              <button type="button" class="location-chip" data-lat="12.9352" data-lon="77.6772" data-name="Bengaluru Bellandur Lake & Tech Parks">
+                🏙️ Bengaluru Lake
+              </button>
+              <button type="button" class="location-chip" data-lat="21.9497" data-lon="89.1833" data-name="Sundarbans Mangrove Delta">
+                🌊 Sundarbans Delta
+              </button>
+              <button type="button" class="location-chip" data-lat="27.1751" data-lon="78.0421" data-name="Taj Mahal & Yamuna Basin">
+                🏛️ Taj Mahal / Yamuna
+              </button>
+              <button type="button" class="location-chip" data-lat="26.9157" data-lon="70.9083" data-name="Thar Desert Jaisalmer">
+                🏜️ Thar Desert
+              </button>
+              <button type="button" class="location-chip" data-lat="19.0544" data-lon="72.8402" data-name="Mumbai Bandra Coastline">
+                🌊 Mumbai Coast
+              </button>
+              <button type="button" class="location-chip" data-lat="25.1124" data-lon="55.1390" data-name="Dubai Palm Jumeirah Island">
+                🏝️ Dubai Palm
+              </button>
+            </div>
+          </div>
+
+          <!-- Coordinate Inputs -->
+          <div class="coords-grid">
+            <div class="form-group">
+              <label for="lat-input" data-i18n="lat_label">Latitude</label>
+              <input type="text" id="lat-input" class="form-input" data-i18n-placeholder="lat_placeholder" placeholder="e.g., 10.9601" value="10.9601">
+            </div>
+            <div class="form-group">
+              <label for="lon-input" data-i18n="lon_label">Longitude</label>
+              <input type="text" id="lon-input" class="form-input" data-i18n-placeholder="lon_placeholder" placeholder="e.g., 76.9500" value="76.9500">
+            </div>
+            <div class="form-group location-actions-group">
+              <button type="button" id="btn-preview-location" class="btn-secondary location-preview-action-btn">
+                <span>🛰️</span> <span>Preview Area Scene</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Live Area Details Card -->
+          <div id="location-area-badge-card" class="glass-panel area-badge-panel">
+            <div class="area-badge-header">
+              <div class="area-title-wrap">
+                <span class="area-pin-icon">📍</span>
+                <div>
+                  <h4 id="loc-display-name">Kuniamuthur, Podanur, Coimbatore South, Tamil Nadu, 641008, India</h4>
+                  <div class="area-meta-row">
+                    <span id="loc-coords-badge" class="coord-tag">10.9601° N, 76.9500° E</span>
+                    <span id="loc-provider-badge" class="provider-tag">🛰️ Esri High-Resolution Satellite (~1.2m/px)</span>
+                  </div>
+                </div>
+              </div>
+              <div id="loc-preview-status" class="preview-status-pill">
+                <span class="status-pulse"></span>
+                <span id="loc-preview-status-text">Satellite Scene Ready</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Map & Satellite Imagery Scene Split View -->
+          <div class="location-preview-split-grid">
+            <!-- Leaflet Interactive Map -->
+            <div class="location-map-wrapper">
+              <div class="map-header">
+                <span>🗺️ Interactive Coordinate Selector (Drag Pin or Click)</span>
+              </div>
+              <div id="location-map" class="interactive-leaflet-map"></div>
+            </div>
+
+            <!-- Satellite Scene Tile View -->
+            <div class="location-scene-wrapper">
+              <div class="map-header">
+                <span>🛰️ High-Resolution Satellite Imagery of Selected Area</span>
+                <span id="scene-zoom-tag" style="font-size: 0.75rem; color: var(--primary-cyan);">Zoom Level 16</span>
+              </div>
+              <div class="location-scene-tile-container">
+                <img id="location-scene-tile-img" src="" alt="Area Satellite Tile Scene">
+                <div id="scene-loading-spinner" class="scene-loading-overlay hidden">
+                  <div class="scanner-ring"></div>
+                  <span>Fetching Satellite Scene...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Natural-Language Query Section -->
+        <div class="query-box-wrapper">
+          <label for="nl-query-input" style="font-weight:600; font-size: 0.95rem; margin-bottom: 0.5rem; display: block;" data-i18n="query_label">Natural-Language Query</label>
+          <input type="text" id="nl-query-input" class="form-input" style="font-size: 1rem; padding: 0.9rem 1.1rem;" data-i18n-placeholder="query_placeholder" placeholder="Identify buildings, water bodies and agricultural areas, and tell me where they are located." value="Identify buildings, water bodies and agricultural areas, and tell me where they are located.">
+          
+          <div class="query-suggestions">
+            <span class="suggestion-chip">“Identify buildings, water bodies and agricultural areas, and tell me where they are located.”</span>
+            <span class="suggestion-chip">“Find all building structures in the North-East and evaluate water bodies.”</span>
+            <span class="suggestion-chip">“Classify land cover using BigEarthNet categories and measure agricultural percentage.”</span>
+            <span class="suggestion-chip">“Analyze changes and quantify urban expansion between these two satellite scenes.”</span>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <button type="button" id="btn-analyze-main" class="btn-agent-analyze">
+          <span>🚀</span> <span data-i18n="analyze_btn">ANALYZE WITH AGENTIC AI</span>
+        </button>
+
+      </div>
+
+      <!-- Agentic AI Live Execution Progress Card -->
+      <div id="agent-progress-card" class="glass-panel agent-progress-card hidden">
+        <div class="progress-header">
+          <div class="progress-title">
+            <div class="scanner-ring"></div>
+            <span>AGENTIC AI TASK EXECUTION PIPELINE</span>
+          </div>
+          <span style="font-size: 0.78rem; color: var(--primary-cyan); font-family: var(--font-mono);">ACTIVE CONTROLLER</span>
+        </div>
+        <ul id="agent-steps-list" class="steps-list">
+          <!-- Dynamic execution steps will be injected here -->
+        </ul>
+      </div>
+
+      <!-- ==========================================================================
+           Results Section
+           ========================================================================== -->
+      <div id="results-section" class="results-container hidden">
+
+        <div class="section-header">
+          <h2 data-i18n="results_title">Agentic Remote Sensing Results</h2>
+          <p>Real computational findings derived from actual satellite imagery & computer vision specialists.</p>
+        </div>
+
+        <!-- Location Badge in Results (Shown for location mode) -->
+        <div id="res-location-banner" class="glass-panel location-result-banner hidden">
+          <div class="location-result-icon">📍</div>
+          <div>
+            <div class="location-result-label">TARGET GEOGRAPHICAL AREA ANALYZED</div>
+            <h3 id="res-location-name" class="location-result-title">Kuniamuthur, Podanur, Coimbatore South, Tamil Nadu, India</h3>
+            <div class="location-result-meta">
+              <span id="res-location-coords" class="coord-tag">10.9601° N, 76.9500° E</span>
+              <span id="res-location-provider" class="provider-tag">🛰️ Esri World Imagery (Orthorectified ~1.2m/px)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1. Executive Metrics Grid -->
+        <div class="metrics-summary-grid">
+          <!-- Confidence -->
+          <div class="glass-panel metric-card">
+            <div class="metric-label" data-i18n="confidence_label">Confidence Score</div>
+            <div id="res-conf-score" class="metric-val confidence-high">88/100</div>
+            <div id="res-conf-level" class="metric-sub">High Confidence</div>
+          </div>
+
+          <!-- Buildings Count -->
+          <div class="glass-panel metric-card">
+            <div class="metric-label" data-i18n="buildings_label">Buildings</div>
+            <div id="res-bldg-count" class="metric-val">17</div>
+            <div class="metric-sub">Detected Structures</div>
+          </div>
+
+          <!-- Water Bodies Count -->
+          <div class="glass-panel metric-card">
+            <div class="metric-label" data-i18n="water_label">Water Bodies</div>
+            <div id="res-water-count" class="metric-val">2</div>
+            <div class="metric-sub">Lakes / Streams</div>
+          </div>
+
+          <!-- Water Coverage % -->
+          <div class="glass-panel metric-card">
+            <div class="metric-label" data-i18n="water_cov_label">Water Coverage</div>
+            <div id="res-water-pct" class="metric-val">12.4%</div>
+            <div class="metric-sub">Surface Area</div>
+          </div>
+
+          <!-- Agriculture Area % -->
+          <div class="glass-panel metric-card">
+            <div class="metric-label" data-i18n="agri_label">Agriculture Area</div>
+            <div id="res-agri-pct" class="metric-val">34.6%</div>
+            <div class="metric-sub">Vegetation Canopy</div>
+          </div>
+        </div>
+
+        <!-- 2. AI Vision-Language Interpretation -->
+        <div class="glass-panel interpretation-card">
+          <h3 data-i18n="interpretation_title"><span>🧠</span> AI Vision-Language Interpretation</h3>
+          <div id="res-ai-answer" class="interpretation-body">
+            <!-- Natural-language interpretation injected here -->
+          </div>
+        </div>
+
+        <!-- 3. Multitemporal Change Box (if applicable) -->
+        <div id="res-change-card" class="glass-panel metric-card hidden" style="text-align: left; margin-bottom: 2rem; padding: 1.5rem;">
+          <h3 style="color: #f59e0b; font-size: 1.1rem; margin-bottom: 0.8rem;"><span>⏳</span> <span data-i18n="change_summary_title">Multitemporal Surface Changes</span></h3>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-secondary);">Total Surface Change:</span>
+              <div id="res-chg-total" style="font-size: 1.4rem; font-weight: 700; color: #f59e0b;">0%</div>
+            </div>
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-secondary);">Urban / Built-up Expansion:</span>
+              <div id="res-chg-urban" style="font-size: 1.4rem; font-weight: 700; color: #ef4444;">0%</div>
+            </div>
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-secondary);">Water / Inundation:</span>
+              <div id="res-chg-water" style="font-size: 1.4rem; font-weight: 700; color: #3b82f6;">0%</div>
+            </div>
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-secondary);">Vegetation Alteration:</span>
+              <div id="res-chg-veg" style="font-size: 1.4rem; font-weight: 700; color: #22c55e;">0%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Optical-SAR Fusion Box (if applicable) -->
+        <div id="res-fusion-card" class="glass-panel metric-card hidden" style="text-align: left; margin-bottom: 2rem; padding: 1.5rem;">
+          <h3 style="color: var(--primary-cyan); font-size: 1.1rem; margin-bottom: 0.8rem;"><span>📡</span> <span data-i18n="sar_fusion_title">Optical + SAR Cross-Modal Validation</span></h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.8rem;">
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-secondary);">Cross-Modal Agreement:</span>
+              <div id="res-fusion-agree" style="font-size: 1.4rem; font-weight: 700; color: var(--accent-teal);">0%</div>
+            </div>
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-secondary);">Fused Water Coverage:</span>
+              <div id="res-fusion-water" style="font-size: 1.4rem; font-weight: 700; color: #3b82f6;">0%</div>
+            </div>
+          </div>
+          <ul id="res-fusion-insights" style="font-size: 0.86rem; color: var(--text-secondary); margin-left: 1.2rem;"></ul>
+        </div>
+
+        <!-- 5. Dual Grid: Evidence Viewer & Land Cover Distribution -->
+        <div class="results-dual-grid">
+          
+          <!-- Visual Evidence Card -->
+          <div class="glass-panel evidence-viewer-card">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+              <h3 style="font-size: 1.1rem; font-weight: 700;" data-i18n="visual_evidence_title">Visual Evidence & Spatial Overlays</h3>
+              
+              <div class="evidence-toolbar">
+                <div class="evidence-view-toggle">
+                  <button type="button" id="toggle-view-overlay" class="toggle-btn active">Overlay</button>
+                  <button type="button" id="toggle-view-raw" class="toggle-btn">Original Scene</button>
+                  <button type="button" id="toggle-view-split" class="toggle-btn">Side-by-Side</button>
+                </div>
+                <button type="button" id="btn-download-evidence" class="btn-secondary" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;">💾 Download</button>
+              </div>
+            </div>
+            
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;" data-i18n="evidence_desc">Overlay highlights buildings in red, water bodies in blue, and vegetation in green.</p>
+
+            <div id="evidence-images-wrapper" class="evidence-image-container view-single">
+              <div class="evidence-frame evidence-frame-overlay">
+                <img id="res-evidence-img" src="" alt="Visual Evidence Overlay">
+                <span class="evidence-frame-label">AI Visual Evidence Overlay</span>
+              </div>
+              <div id="evidence-raw-frame" class="evidence-frame evidence-frame-raw hidden">
+                <img id="res-raw-img" src="" alt="Original Satellite Scene">
+                <span class="evidence-frame-label">Original Satellite Image</span>
+              </div>
+            </div>
+
+            <div class="evidence-legend">
+              <div class="legend-item"><div class="legend-color legend-red"></div> <span>Buildings / Roofs (BBoxes)</span></div>
+              <div class="legend-item"><div class="legend-color legend-blue"></div> <span>Water Bodies (NDWI Mask)</span></div>
+              <div class="legend-item"><div class="legend-color legend-green"></div> <span>Agriculture / Canopy (VARI)</span></div>
+              <div class="legend-item"><div class="legend-color legend-amber"></div> <span>Temporal Change</span></div>
+            </div>
+          </div>
+
+          <!-- Land Cover & Directional Matrix -->
+          <div class="glass-panel evidence-viewer-card">
+            <h3 style="font-size: 1.1rem; font-weight: 700;" data-i18n="land_cover_title">Land Cover Distribution (BigEarthNet-19)</h3>
+            <div id="res-lc-bars" class="land-cover-bars">
+              <!-- Land cover bars injected here -->
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--border-card); margin: 1.5rem 0;">
+
+            <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem;" data-i18n="spatial_dist_title">Spatial Distribution & Directions</h3>
+            <p style="font-size: 0.78rem; color: var(--text-secondary);">Image-relative 9-quadrant compass alignment.</p>
+            
+            <div style="max-height: 240px; overflow-y: auto;">
+              <table class="directions-table">
+                <thead>
+                  <tr>
+                    <th>Direction</th>
+                    <th>Buildings</th>
+                    <th>Water</th>
+                    <th>Canopy</th>
+                  </tr>
+                </thead>
+                <tbody id="res-directions-body">
+                  <!-- Injected rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 6. Agent Execution Workflow -->
+        <div class="glass-panel" style="padding: 1.6rem; margin-bottom: 2rem;">
+          <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.8rem; color: var(--primary-cyan);" data-i18n="agent_trace_title">Agentic Task Plan & Execution Summary</h3>
+          <ul id="res-agent-steps" class="steps-list">
+            <!-- Completed execution steps injected here -->
+          </ul>
+        </div>
+
+        <!-- 7. Actions Bar -->
+        <div class="results-actions-bar">
+          <div>
+            <strong style="color: var(--primary-cyan);">SatQuery Official Remote Sensing Report</strong>
+            <p style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.2rem;">Complete executive summary with high-resolution visual evidence and scientific metrics.</p>
+          </div>
+          <button type="button" id="btn-download-pdf" class="btn-primary" style="width: auto; padding: 0.75rem 1.8rem;" data-i18n="download_report_btn">
+            📄 Download PDF Report
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- VIEW B: HISTORY VIEW -->
+    <div id="view-history" class="app-view hidden">
+      <div class="section-header">
+        <h2 data-i18n="history_title">User Analysis History</h2>
+        <p>Review past remote sensing queries, confidence scores, and access downloadable reports.</p>
+      </div>
+
+      <div class="glass-panel" style="padding: 1.6rem;">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Analysis ID</th>
+              <th>Mode</th>
+              <th>Query</th>
+              <th>Confidence</th>
+              <th>Timestamp</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="history-table-body">
+            <!-- Dynamically populated from SQLite -->
+          </tbody>
+        </table>
+        <div id="history-empty-notice" class="hidden" style="text-align: center; padding: 2rem; color: var(--text-secondary);" data-i18n="history_empty">
+          No previous analysis records found.
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW C: ABOUT & MODELS VIEW -->
+    <div id="view-about" class="app-view hidden">
+      <div class="section-header">
+        <h2>About SatQuery AI & Scientific Architecture</h2>
+        <p>Autonomous Vision-Language Assistant for Multimodal Remote Sensing Image Analysis.</p>
+      </div>
+
+      <div class="glass-panel" style="padding: 2rem; line-height: 1.7; font-size: 0.92rem; color: var(--text-secondary);">
+        <h3 style="color: var(--primary-cyan); font-size: 1.25rem; margin-bottom: 0.8rem;">1. Agentic AI Pipeline</h3>
+        <p>SatQuery AI decouples high-level natural language user queries from underlying complex remote-sensing computer vision models. The Agent Controller decomposes input queries into directed sub-tasks, dispatches work to specialized analytical pipelines, calculates dynamic multi-factor confidence metrics, and synthesizes evidence-grounded interpretations.</p>
+
+        <h3 style="color: var(--primary-cyan); font-size: 1.25rem; margin: 1.4rem 0 0.6rem;">2. Specialist Remote Sensing Suite</h3>
+        <ul style="margin-left: 1.4rem; display: flex; flex-direction: column; gap: 0.4rem;">
+          <li><strong>Building Detection:</strong> Structural edge-gradient analysis and spectral roof reflectance segmentation with 9-quadrant compass orientation.</li>
+          <li><strong>Water Body Segmentation:</strong> RGB-NDWI proxy and HSV cyan-blue envelope extraction with morphological boundary isolation.</li>
+          <li><strong>Agriculture & Vegetation Index:</strong> Visible Atmospherically Resistant Index (VARI) & Excess Green (ExG) canopy density measurement.</li>
+          <li><strong>BigEarthNet Land Cover Classification:</strong> Corine-compatible 5-class remote sensing land-cover mapping.</li>
+          <li><strong>Multitemporal Differential Change Specialist:</strong> Sub-pixel ORB co-registration and Delta-E radiometric difference analysis.</li>
+          <li><strong>Optical-SAR Feature Fusion:</strong> Cross-validates optical surface reflectance with microwave radar backscatter intensity.</li>
+        </ul>
+
+        <h3 style="color: var(--primary-cyan); font-size: 1.25rem; margin: 1.4rem 0 0.6rem;">3. Scientific Integrity & Honesty</h3>
+        <p>SatQuery AI strictly calculates all building counts, water areas, agricultural canopy percentages, and change metrics directly from actual pixel arrays. In the absence of calibrated Ground Sample Distance (GSD) or sensor GCPs, measurements are transparently designated as image-relative percentages.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- JavaScript Scripts -->
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

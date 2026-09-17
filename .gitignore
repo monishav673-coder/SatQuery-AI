@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+satquery.db
+Backend/uploads/*
+!Backend/uploads/.gitkeep
+Backend/reports/*
+!Backend/reports/.gitkeep
+node_modules/
+.DS_Store
