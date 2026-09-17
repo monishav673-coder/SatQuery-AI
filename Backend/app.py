@@ -16,7 +16,7 @@ from routers.history import history_bp
 def create_app():
     app = Flask(
         __name__,
-        static_folder=os.path.join(os.path.dirname(__file__), '..', 'Frontend'),
+        static_folder=os.path.join(os.path.dirname(__file__), '..'),
         static_url_path=''
     )
     
