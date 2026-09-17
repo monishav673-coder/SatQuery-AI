@@ -2,9 +2,7 @@
  * SatQuery AI - Centralized REST API Service
  */
 
-const API_BASE = window.location.protocol.startsWith('http')
-  ? `${window.location.origin}/api`
-  : 'http://satquery-ai-backend-5mg2.onrender.com/api';
+const API_BASE ='http://satquery-ai-backend-5mg2.onrender.com/api';
 
 const SatQueryAPI = {
   // 1. Health Check
