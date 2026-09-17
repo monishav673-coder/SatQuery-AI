@@ -101,7 +101,7 @@ app = create_app()
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5001))
-    host = os.getenv('HOST', '127.0.0.1')
+    host = os.getenv('HOST', '0.0.0.0')
     print(f"============================================================")
     print(f"SATQUERY AI Remote Sensing Server starting on http://{host}:{port}")
     print(f"============================================================")
