@@ -4,7 +4,7 @@
 
 const API_BASE = window.location.protocol.startsWith('http')
   ? `${window.location.origin}/api`
-  : 'http://127.0.0.1:5001/api';
+  : 'http://satquery-ai-backend-5mg2.onrender.com/api';
 
 const SatQueryAPI = {
   // 1. Health Check
